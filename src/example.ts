@@ -1,5 +1,5 @@
 import { define } from "arktype";
-import { defineQuery } from "./http.js";
+import { defineAction } from "./http.js";
 import type { ErrorMessage } from "@ark/util";
 
 const user = define({
@@ -7,26 +7,33 @@ const user = define({
   "displayName?": "string",
 });
 
-const listUsers = defineQuery({
+const listUsers = defineAction({
   input: {
     "something?": "string[]",
     "limit?": ["string", "=>", (str) => parseInt(str)],
   },
   output: [user, "[]"],
-  async query({ input }) {
+  async execute({ input }) {
     return [{ username: "alice" }];
   },
 });
 
-const getUser = defineQuery({
+const getUser = defineAction({
   input: {
     username: "string",
   },
   output: user,
-  async query({ input }) {
-    return { username: "alice" };
+  async execute({ input }) {
+    return { username: input.username };
   },
 });
+
+// const getUser = action()
+//   .in({ username: "string" })
+//   .out(user)
+//   .do(async ({ username }) => {
+//     return { username };
+//   });
 
 type validatePath<path> = path extends `/${string}`
   ? path
