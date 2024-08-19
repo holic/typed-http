@@ -1,0 +1,6 @@
+{
+  "extends": ["@ark/util/tsconfig.base.json"],
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true
+  }
+}
