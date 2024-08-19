@@ -15,6 +15,9 @@ importers:
       '@ark/util':
         specifier: ^0.2.2
         version: 0.2.2
+      '@types/node':
+        specifier: ^22.4.1
+        version: 22.4.1
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -27,6 +30,9 @@ packages:
   '@ark/util@0.2.2':
     resolution: {integrity: sha512-ryZ4+f3SlReQRH9nTFLK5EeU1Pan5ZfS+ACPSk0ir5uujJouFmvOdnkVfeAJAgeOb3kKmUM9kjelv1cwH2ScZg==}
 
+  '@types/node@22.4.1':
+    resolution: {integrity: sha512-1tbpb9325+gPnKK0dMm+/LMriX0vKxf6RnB0SZUqfyVkQ4fMgUSySqhxE/y8Jvs4NyF1yHzTfG9KlnkIODxPKg==}
+
   arktype@2.0.0-beta.6:
     resolution: {integrity: sha512-tbH5/h0z371sgrJIAhZhH2BcrErWv8uQIPVcLmknJ8ffov5/ZbMNufrQ3hG9avGKTcVnVmdQoPhl1WuKuagqXA==}
 
@@ -34,6 +40,9 @@ packages:
     resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  undici-types@6.19.8:
+    resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
 snapshots:
 
@@ -43,9 +52,15 @@ snapshots:
 
   '@ark/util@0.2.2': {}
 
+  '@types/node@22.4.1':
+    dependencies:
+      undici-types: 6.19.8
+
   arktype@2.0.0-beta.6:
     dependencies:
       '@ark/schema': 0.3.3
       '@ark/util': 0.2.2
 
   typescript@5.5.4: {}
+
+  undici-types@6.19.8: {}
