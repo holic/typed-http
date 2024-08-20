@@ -1,5 +1,5 @@
 import { define } from "arktype";
-import { defineAction } from "./http.js";
+import { defineAction } from "./action.js";
 import type { ErrorMessage } from "@ark/util";
 
 const user = define({
