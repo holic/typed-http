@@ -3,14 +3,16 @@
   "name": "typed-http",
   "type": "module",
   "scripts": {
-    "test": "tsc"
+    "test": "vitest"
   },
   "dependencies": {
     "arktype": "2.0.0-beta.6"
   },
   "devDependencies": {
+    "@ark/attest": "^0.12.1",
     "@ark/util": "^0.2.2",
     "@types/node": "^22.4.1",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
   }
 }
