@@ -4,46 +4,26 @@ import {
   type Type,
   type validateAmbient,
 } from "arktype";
-import type { Pipe } from "./types/pipe.js";
-import type { Action } from "./types/action.js";
+import type { includesMorphs } from "arktype/internal/ast.ts";
+import { _isShape, type Shape } from "./types/shape.js";
+import type { ErrorMessage } from "@ark/util";
 
-export type ArktypePipe<def, t = inferAmbient<def>> = Pipe<
-  Type<t>["inferIn"],
-  Type<t>["infer"]
->;
+export type createShape<def, t = inferAmbient<def>> = Shape<Type<t>["infer"]>;
 
-export type ArktypeAction<inputDef, outputDef> = Action<
-  ArktypePipe<inputDef>,
-  ArktypePipe<outputDef>
->;
-
-const t = type({ limit: ["string", "=>", (str) => parseInt(str)] });
-
-export function createPipe<def>(
-  def: validateAmbient<def>
-): NoInfer<ArktypePipe<def>> {
-  const t = type(def);
+export function createShape<const def, t = inferAmbient<def>>(
+  def: validateAmbient<def> & includesMorphs<t> extends false
+    ? def
+    : ErrorMessage<"Shape types must be pure and contain no morphs.">
+): createShape<def, t> {
+  const t = type(def as any);
   return {
-    input: {
-      accepts: t.allows,
-      from(value) {
-        const result = t(value);
-        return result instanceof type.errors
-          ? new AggregateError(result, result.message)
-          : result;
-      },
+    [_isShape]: true,
+    accepts: t.allows,
+    from(input) {
+      const output = t(input);
+      return output instanceof type.errors
+        ? new AggregateError(output)
+        : output;
     },
-    output: {
-      accepts(value) {
-        return t.allows(value);
-      },
-      from(value) {
-        const result = t(value);
-        return result instanceof type.errors
-          ? new AggregateError(result, result.message)
-          : result;
-      },
-    },
-    pipe: t.from,
   };
 }

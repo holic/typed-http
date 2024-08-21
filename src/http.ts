@@ -5,6 +5,7 @@ import {
   type Type,
   type validateAmbient,
 } from "arktype";
+import type { includesMorphs } from "arktype/internal/ast.ts";
 import type { ArktypeAction } from "./arktype.js";
 import type { InputParams } from "./inputParams.js";
 
@@ -19,15 +20,18 @@ export type validateOutputDef<
   def,
   t = inferAmbient<def>,
 > = Type<t>["infer"] extends Json
-  ? def
-  : ErrorMessage<"Output must be JSON serializable.">;
+  ? includesMorphs<t> extends false
+    ? def
+    : // To avoid having an input/output variant of JSON, enforce no morphs for now.
+      ErrorMessage<"Cannot contain morphs.">
+  : ErrorMessage<"Must be JSON serializable.">;
 
 export function createHttpAction<inputDef, outputDef>(opts: {
   input: validateAmbient<inputDef> & validateInputDef<inputDef>;
   output: validateAmbient<outputDef> & validateOutputDef<outputDef>;
   execute: ArktypeAction<inputDef, outputDef>["execute"];
 }): ArktypeAction<inputDef, outputDef> {
-  const input = type(opts.input as never);
+  // const input = type(opts.input as never);
   // const input = type(opts.input);
   // const output = type(opts.output);
   // return {

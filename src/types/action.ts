@@ -1,11 +1,20 @@
 import type { conform } from "@ark/util";
-import type { innerShape } from "./shape.js";
-import type { Pipe } from "./pipe.js";
+import type { innerShape, Shape } from "./shape.js";
+import type { Codec } from "./codec.js";
 
-export type Action<input extends Pipe.Any, output extends Pipe.Any> = {
+export type Action<
+  input extends Shape<any> | Codec<any, any>,
+  output extends Shape<any> | Codec<any, any>,
+  executeInput = input extends Codec<any, infer decoded>
+    ? decoded
+    : innerShape<input>,
+  executeOutput = output extends Codec<any, infer decoded>
+    ? decoded
+    : innerShape<output>,
+> = {
   input: input;
   output: output;
   execute<const value>(
-    value: conform<value, innerShape<input["input"]>>
-  ): Promise<innerShape<output["output"]> | Error>;
+    value: conform<value, executeInput>
+  ): Promise<executeOutput | Error>;
 };
