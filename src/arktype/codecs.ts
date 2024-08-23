@@ -1,5 +1,5 @@
 import { type validateAmbient } from "arktype";
-import { flatMorph, type show } from "@ark/util";
+import { flatMorph } from "@ark/util";
 
 export type expectedCodec = { encode: any; decode: any };
 export type codecKeys = keyof expectedCodec;
@@ -24,12 +24,12 @@ export type flattenCodecs<op, codecs> = {
   [k in keyof codecs & string as `#${k}`]: op extends keyof codecs[k]
     ? codecs[k][op]
     : never;
-};
+} & unknown;
 
 export function flattenCodecs<const op, const codecs>(
   op: [op] extends ["encode"] | ["decode"] ? op : "encode" | "decode",
   codecs: validateCodecs<codecs>
-): show<flattenCodecs<op, codecs>> {
+): flattenCodecs<op, codecs> {
   return flatMorph(codecs as never, (k, v) => [
     `#${k}`,
     v[op as never],
@@ -37,8 +37,8 @@ export function flattenCodecs<const op, const codecs>(
 }
 
 export function createCodecs<const codecs>(codecs: validateCodecs<codecs>): {
-  readonly encode: show<flattenCodecs<"encode", codecs>>;
-  readonly decode: show<flattenCodecs<"decode", codecs>>;
+  readonly encode: flattenCodecs<"encode", codecs>;
+  readonly decode: flattenCodecs<"decode", codecs>;
 } {
   return {
     encode: flattenCodecs("encode", codecs) as never,

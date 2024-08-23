@@ -1,16 +1,20 @@
 import { test } from "vitest";
 import { attest } from "@ark/attest";
-import { scope } from "arktype";
+import { scope, type } from "arktype";
 import { createCodecs } from "./codecs.js";
 
 const codecs = createCodecs({
   date: {
     encode: ["Date", "=>", (v: Date) => v.toISOString()],
-    decode: ["string", "=>", (v: string) => new Date(v)],
+    decode: type("string")
+      .pipe((v) => new Date(v))
+      .narrow((v, ctx) =>
+        isNaN(v.getTime()) ? ctx.mustBe("a valid date time string") : true,
+      ),
   },
   id: {
     encode: ["bigint", "=>", (v: bigint) => `${v.toString()}n`],
-    decode: ["string", "=>", (v: string) => BigInt(v.replace(/n$/, ""))],
+    decode: [/^\d+n$/, "=>", (s: string) => BigInt(s.slice(0, -1))],
   },
 });
 
@@ -40,7 +44,15 @@ test("decode", () => {
     .snap({ createdAt: "Sat Jan 01 2000" })
     .type.toString.snap("{ id?: bigint; createdAt?: Date }");
 
+  attest(() => decoders.posts.from({ createdAt: "wrong" })).throws.snap(
+    "AggregateError: createdAt must be a valid date time string (was Invalid Date, undefined NaN, NaN)",
+  );
+
   attest(decoders.posts.from({ id: "1000n" }))
     .snap({ id: "1000n" })
     .type.toString.snap("{ id?: bigint; createdAt?: Date }");
+
+  attest(() => decoders.posts.from({ id: "wrong" })).throws.snap(
+    'AggregateError: id must be matched by ^\\d+n$ (was "wrong")',
+  );
 });
