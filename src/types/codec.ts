@@ -1,10 +1,9 @@
 import type { conform } from "@ark/util";
 
-export const _isCodec = Symbol("isCodec");
-export type _isCodec = typeof _isCodec;
+const brand = Symbol("isCodec");
 
 export type Codec<encoded, decoded> = {
-  [_isCodec]: true;
+  [brand]: true;
   encode<const value>(value: conform<value, decoded>): encoded | Error;
   decode<const value>(value: conform<value, encoded>): decoded | Error;
 };
@@ -12,5 +11,5 @@ export type Codec<encoded, decoded> = {
 export type isCodec<t> = t extends Codec<any, any> ? true : false;
 // TODO: should I use never or unknown in place of any in generic?
 export function isCodec(t: unknown): t is Codec<any, any> {
-  return typeof t === "object" && t !== null && _isCodec in t;
+  return typeof t === "object" && t !== null && brand in t;
 }
