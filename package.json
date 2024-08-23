@@ -3,7 +3,7 @@
   "name": "typed-http",
   "type": "module",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "arktype": "2.0.0-beta.6"

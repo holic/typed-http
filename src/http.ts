@@ -26,7 +26,7 @@ export type validateOutputDef<
       ErrorMessage<"Cannot contain morphs.">
   : ErrorMessage<"Must be JSON serializable.">;
 
-export function createHttpAction<inputDef, outputDef>(opts: {
+export function createHttpAction<req, res>(opts: {
   input: validateAmbient<inputDef> & validateInputDef<inputDef>;
   output: validateAmbient<outputDef> & validateOutputDef<outputDef>;
   execute: ArktypeAction<inputDef, outputDef>["execute"];
