@@ -5,6 +5,7 @@ import { flatMorph, type ErrorMessage } from "@ark/util";
 export type expectedCodec = { encode: any; decode: any };
 export type expectedCodecs = { [k: string]: expectedCodec };
 
+// TODO: ensure no extraneous keys, helps with typos
 // TODO: validate bidirectional (encode.infer = decode.inferIn, decode.infer = encode.inferIn)
 export type validateCodec<codec> = keyof expectedCodec extends keyof codec
   ? validateAmbient<codec>

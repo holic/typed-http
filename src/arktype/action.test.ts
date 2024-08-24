@@ -1,9 +1,62 @@
 import { test } from "vitest";
 import { type } from "arktype";
-import { defineAction } from "./action.js";
+import { createAction, defineAction } from "./action.js";
 import { attest } from "@ark/attest";
+import type { Action } from "../types/action.js";
+import type { satisfy } from "@ark/util";
+import type { Codec } from "../types/codec.js";
 
-test("createAction execute return type", () => {
+test("action", () => {
+  const getUser = createAction({
+    input: {
+      id: ["string", "=>", (s: string) => parseInt(s)],
+    },
+    output: {
+      id: "integer",
+      username: "string",
+    },
+    async execute({ input }) {
+      return {
+        id: input.id,
+        username: "alice",
+      };
+    },
+  });
+
+  attest<satisfy<Action<any, any>, typeof getUser>>;
+
+  attest<satisfy<Action<Codec<{ id: string }, any>, any>, typeof getUser>>;
+  attest<satisfy<Action<Codec<any, { id: number }>, any>, typeof getUser>>;
+
+  attest<
+    satisfy<
+      Action<any, Codec<{ id: number; username: string }, any>>,
+      typeof getUser
+    >
+  >;
+  attest<
+    satisfy<
+      Action<any, Codec<any, { id: number; username: string }>>,
+      typeof getUser
+    >
+  >;
+
+  attest(getUser.input.encode).type.toString.snap(`<const value>(
+  value: conform<value, { id: number }>
+) => Error | { id: string }`);
+  attest(getUser.input.decode).type.toString.snap(`<const value>(
+  value: conform<value, { id: string }>
+) => Error | { id: number }`);
+
+  attest(getUser.output.encode).type.toString.snap(`<const value>(
+  value: conform<value, { id: number; username: string }>
+) => Error | { id: number; username: string }`);
+  attest(getUser.output.decode).type.toString.snap(`<const value>(
+  value: conform<value, { id: number; username: string }>
+) => Error | { id: number; username: string }`);
+});
+
+test("execute return type error", () => {
   attest(() =>
     defineAction({
       types: {
