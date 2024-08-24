@@ -1,6 +1,7 @@
-import type { conform } from "@ark/util";
+import { noSuggest, type conform } from "@ark/util";
 
-const brand = Symbol("isCodec");
+const brand = noSuggest("Codec");
+type brand = typeof brand;
 
 export type Codec<encoded, decoded> = {
   [brand]: true;

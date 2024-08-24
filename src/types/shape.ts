@@ -1,4 +1,7 @@
-const brand = Symbol("isShape");
+import { noSuggest } from "@ark/util";
+
+const brand = noSuggest("Shape");
+type brand = typeof brand;
 
 export type Shape<shape> = {
   readonly [brand]: undefined;

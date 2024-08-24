@@ -9,7 +9,7 @@ const codecs = createCodecs({
     decode: type("string")
       .pipe((v) => new Date(v))
       .narrow((v, ctx) =>
-        isNaN(v.getTime()) ? ctx.mustBe("a valid date time string") : true,
+        isNaN(v.getTime()) ? ctx.mustBe("a valid date time string") : true
       ),
   },
   id: {
@@ -25,9 +25,10 @@ const filters = {
   },
 } as const;
 
-test("encode", () => {
-  const encoders = scope({ ...codecs.encode, ...filters }).export();
+const encoders = scope({ ...codecs.encode, ...filters }).export();
+const decoders = scope({ ...codecs.decode, ...filters }).export();
 
+test("encode", () => {
   attest(encoders.posts.from({ createdAt: new Date(2000, 0) }))
     .snap({ createdAt: "2000-01-01T00:00:00.000Z" })
     .type.toString.snap("{ id?: string; createdAt?: string }");
@@ -38,14 +39,12 @@ test("encode", () => {
 });
 
 test("decode", () => {
-  const decoders = scope({ ...codecs.decode, ...filters }).export();
-
   attest(decoders.posts.from({ createdAt: "2000-01-01" }))
     .snap({ createdAt: "Sat Jan 01 2000" })
     .type.toString.snap("{ id?: bigint; createdAt?: Date }");
 
   attest(() => decoders.posts.from({ createdAt: "wrong" })).throws.snap(
-    "AggregateError: createdAt must be a valid date time string (was Invalid Date, undefined NaN, NaN)",
+    "AggregateError: createdAt must be a valid date time string (was Invalid Date, undefined NaN, NaN)"
   );
 
   attest(decoders.posts.from({ id: "1000n" }))
@@ -53,6 +52,6 @@ test("decode", () => {
     .type.toString.snap("{ id?: bigint; createdAt?: Date }");
 
   attest(() => decoders.posts.from({ id: "wrong" })).throws.snap(
-    'AggregateError: id must be matched by ^\\d+n$ (was "wrong")',
+    'AggregateError: id must be matched by ^\\d+n$ (was "wrong")'
   );
 });

@@ -1,14 +1,14 @@
 import { type validateAmbient } from "arktype";
-import { flatMorph } from "@ark/util";
+import { flatMorph, type ErrorMessage } from "@ark/util";
 
+// TODO: check if this works with `unknown`?
 export type expectedCodec = { encode: any; decode: any };
-export type codecKeys = keyof expectedCodec;
+export type expectedCodecs = { [k: string]: expectedCodec };
 
-export type validateCodec<codec> = "encode" | "decode" extends keyof codec
-  ? Omit<keyof codec, "encode" | "decode"> extends never
-    ? validateAmbient<codec>
-    : expectedCodec
-  : expectedCodec;
+// TODO: validate bidirectional (encode.infer = decode.inferIn, decode.infer = encode.inferIn)
+export type validateCodec<codec> = keyof expectedCodec extends keyof codec
+  ? validateAmbient<codec>
+  : ErrorMessage<"A codec must have `encode` and `decode` type definitions.">;
 
 export type validateCodecs<codecs> = {
   [k in keyof codecs]: validateCodec<codecs[k]>;
@@ -27,7 +27,8 @@ export type flattenCodecs<op, codecs> = {
 } & unknown;
 
 export function flattenCodecs<const op, const codecs>(
-  op: [op] extends ["encode"] | ["decode"] ? op : "encode" | "decode",
+  // TODO: is this unnecesarily complex to enforce no unions? is allowing for a union fine?
+  op: [op] extends ["encode"] | ["decode"] ? op : keyof expectedCodec,
   codecs: validateCodecs<codecs>
 ): flattenCodecs<op, codecs> {
   return flatMorph(codecs as never, (k, v) => [
