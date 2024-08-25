@@ -44,6 +44,7 @@ test("action", () => {
   attest(getUser.input.encode).type.toString.snap(`<const value>(
   value: conform<value, { id: number }>
 ) => Error | { id: string }`);
+
   attest(getUser.input.decode).type.toString.snap(`<const value>(
   value: conform<value, { id: string }>
 ) => Error | { id: number }`);
@@ -51,9 +52,52 @@ test("action", () => {
   attest(getUser.output.encode).type.toString.snap(`<const value>(
   value: conform<value, { id: number; username: string }>
 ) => Error | { id: number; username: string }`);
+
   attest(getUser.output.decode).type.toString.snap(`<const value>(
   value: conform<value, { id: number; username: string }>
 ) => Error | { id: number; username: string }`);
+});
+
+test("action codecs are bidirectional", () => {
+  const getUser = createAction({
+    input: {
+      id: ["string", "=>", (s: string) => parseInt(s)],
+    },
+    output: {
+      id: "integer",
+      username: "string",
+    },
+    async execute({ input }) {
+      return {
+        id: input.id,
+        username: "alice",
+      };
+    },
+  });
+
+  type getUser = typeof getUser;
+
+  type input = getUser["input"];
+  attest<
+    Parameters<input["encode"]>[0],
+    Exclude<ReturnType<input["decode"]>, Error>
+  >;
+  attest<
+    Parameters<input["decode"]>[0],
+    Exclude<ReturnType<input["encode"]>, Error>
+  >;
+
+  type output = getUser["output"];
+  attest<
+    Parameters<output["encode"]>[0],
+    Exclude<ReturnType<output["decode"]>, Error>
+  >;
+  attest<
+    Parameters<output["decode"]>[0],
+    Exclude<ReturnType<output["encode"]>, Error>
+  >;
+
+  // TODO: test runtime
 });
 
 test("execute return type error", () => {

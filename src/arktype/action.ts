@@ -2,7 +2,6 @@ import type { requiredKeyOf } from "@ark/util";
 import {
   scope,
   Type,
-  type,
   type inferScope,
   type inferTypeRoot,
   type validateTypeRoot,
@@ -48,7 +47,8 @@ export type validateAction<action> =
           ? // TODO: allow existing codecs from `createCodecs` to be passed in
             validateCodecs<action[k]>
           : k extends "input" | "output"
-            ? validateTypeRoot<
+            ? // TODO: test that these are bidirectional
+              validateTypeRoot<
                 action[k],
                 // TODO: is it necessary to `inferScope` here?
                 "types" extends keyof action ? inferScope<action["types"]> : {}
