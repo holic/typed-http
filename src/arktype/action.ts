@@ -2,7 +2,7 @@ import type { ErrorMessage, ErrorType, requiredKeyOf } from "@ark/util";
 import { scope, type inferScope, type validateTypeRoot } from "arktype";
 import { flattenCodecs } from "./codecs.js";
 import type { Codec } from "../types/codec.js";
-import type { Action } from "../types/action.js";
+import { defineAction as defineBaseAction } from "../types/action.js";
 import {
   createCodec,
   type expectedCodec,
@@ -10,13 +10,11 @@ import {
 } from "./codec.js";
 import type { distillIn, distillOut } from "./utils.js";
 
-export type expectedAction<input = unknown, output = unknown> = {
+export type expectedAction = {
   types?: { [k: string]: expectedCodec };
-  input?: input;
-  output?: output;
-  execute: (args: {
-    input: input extends undefined ? never : input;
-  }) => Promise<output | Error>;
+  input?: any;
+  output?: any;
+  execute: (args: { input: any }) => Promise<any>;
 };
 
 export type validateTypes<types> = {
@@ -79,19 +77,28 @@ export type validateAction<action> =
       }
     : expectedAction;
 
+export type defineAction<action> = defineBaseAction<action>;
+
 export function defineAction<const action>(
   action: validateAction<action>
-): action {
+): defineAction<action> {
   return action as never;
 }
 
 export type createAction<
   action,
   types = "types" extends keyof action ? action["types"] : {},
-> = Action<
-  "input" extends keyof action ? inferDef<action["input"], types> : never,
-  "output" extends keyof action ? inferDef<action["output"], types> : never
->;
+> = "execute" extends keyof action
+  ? defineAction<{
+      input: "input" extends keyof action
+        ? inferDef<action["input"], types>
+        : never;
+      output: "output" extends keyof action
+        ? inferDef<action["output"], types>
+        : never;
+      execute: action["execute"];
+    }>
+  : ErrorMessage<"Invalid action. Did you validate it first?">;
 
 export function createAction<const action>(
   _action: validateAction<action>
@@ -118,9 +125,9 @@ export function createAction<const action>(
         })
       : null;
 
-  return {
+  return defineBaseAction({
     ...(input != null ? { input } : null),
     ...(output != null ? { output } : null),
     execute: action.execute,
-  } as never;
+  }) as never;
 }

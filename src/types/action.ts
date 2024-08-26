@@ -1,4 +1,4 @@
-import { noSuggest, type conform } from "@ark/util";
+import { noSuggest } from "@ark/util";
 import type { Codec } from "./codec.js";
 
 const brand = noSuggest("Action");
@@ -12,9 +12,23 @@ export type Action<
   executeOutput = output extends Codec<any, infer decoded> ? decoded : void,
 > = {
   [brand]: undefined;
-  input: input;
-  output: output;
-  execute<const value>(args: {
-    input: conform<value, executeInput>;
-  }): Promise<executeOutput>;
+  input?: input;
+  output?: output;
+  execute(args: { input: executeInput }): Promise<executeOutput>;
 };
+
+export type isAction<t> = t extends Action<any, any> ? true : false;
+// TODO: should I use never or unknown in place of any in generic?
+export function isAction(t: unknown): t is Action<any, any> {
+  return typeof t === "object" && t !== null && brand in t;
+}
+
+// assumes validated action
+export type defineAction<action> = action & { [brand]: undefined };
+
+// TODO: validate
+export function defineAction<
+  const action extends Omit<Action<any, any>, brand>,
+>(action: action): defineAction<action> {
+  return { ...action, [brand]: undefined };
+}

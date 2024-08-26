@@ -2,6 +2,7 @@ import { ArkErrors, type } from "arktype";
 import type { inferAction } from "./action.js";
 import { has, type inner } from "./common.js";
 import { toInputParams } from "./types/inputParams.js";
+import type { Action } from "./types/action.js";
 
 // TODO: add support for ArkErrors
 export class RequestHandlerError extends Error {}
@@ -18,8 +19,10 @@ function getMethod(
   return method;
 }
 
-export function createRequestHandler<input, output>(opts: {
-  action: inferAction<input, output>;
+export function createRequestHandler<
+  const action extends Action<any, any>,
+>(args: {
+  action: action;
 }): (req: Request) => Promise<Response | RequestHandlerError> {
   return async function handler(req: Request) {
     const res = new Response();
