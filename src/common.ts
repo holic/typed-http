@@ -7,16 +7,15 @@ export type deepFreeze<input> = {
   readonly [key in keyof input]: deepFreeze<input[key]>;
 } & unknown;
 
-export type inner<items> = items extends ReadonlyArray<infer t>
-  ? t
-  : items extends Array<infer t>
-  ? t
-  : items extends Set<infer t>
-  ? t
-  : never;
+export type inner<items> =
+  items extends ReadonlyArray<infer t>
+    ? t
+    : items extends Set<infer t>
+      ? t
+      : never;
 
-export function has<t>(
-  items: ReadonlyArray<t> | Array<t> | Set<t>,
+export function has<const t>(
+  items: ReadonlyArray<t> | Set<t>,
   item: unknown
 ): item is t {
   if (Array.isArray(items)) {
