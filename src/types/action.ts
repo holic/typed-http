@@ -4,7 +4,6 @@ import type { Codec } from "./codec.js";
 const brand = noSuggest("Action");
 type brand = typeof brand;
 
-// TODO: make input/output optional
 export type Action<
   input extends Codec<any, any>,
   output extends Codec<any, any>,
@@ -26,9 +25,9 @@ export function isAction(t: unknown): t is Action<any, any> {
 // assumes validated action
 export type defineAction<action> = action & { [brand]: undefined };
 
-// TODO: validate
-export function defineAction<
-  const action extends Omit<Action<any, any>, brand>,
->(action: action): defineAction<action> {
+export function defineAction<const action>(
+  // TODO: validate
+  action: action
+): defineAction<action> {
   return { ...action, [brand]: undefined };
 }

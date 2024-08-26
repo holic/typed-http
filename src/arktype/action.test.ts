@@ -4,7 +4,7 @@ import { attest } from "@ark/attest";
 import type { satisfy } from "@ark/util";
 import type { Action } from "../types/action.js";
 import type { Codec } from "../types/codec.js";
-import { createAction, defineAction } from "./action.js";
+import { createAction } from "./action.js";
 
 test("action", () => {
   const getUser = createAction({
@@ -106,7 +106,7 @@ test.todo("invalid keys", () => {});
 
 test("execute return type error", () => {
   attest(() =>
-    defineAction({
+    createAction({
       types: {
         date: {
           encode: ["Date", "=>", (v: Date) => v.toISOString()],
@@ -132,6 +132,6 @@ test("execute return type error", () => {
       async execute() {},
     })
   ).type.errors.snap(
-    "Type '() => Promise<void>' is not assignable to type 'validateExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<{ id: string; username: string; }>'.Type 'void' is not assignable to type '{ id: string; username: string; }'."
+    "Type '() => Promise<void>' is not assignable to type 'expectedExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<{ id: bigint; username: string; }>'.Type 'void' is not assignable to type '{ id: bigint; username: string; }'."
   );
 });

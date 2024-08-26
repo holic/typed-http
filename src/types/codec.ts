@@ -18,8 +18,8 @@ export function isCodec(t: unknown): t is Codec<any, any> {
   return typeof t === "object" && t !== null && brand in t;
 }
 
-// TODO: validate
-export function defineCodec<const codec extends Omit<Codec<any, any>, brand>>(
+export function defineCodec<const codec>(
+  // TODO: validate
   codec: codec
 ): codec & { [brand]: undefined } {
   return { ...codec, [brand]: undefined };

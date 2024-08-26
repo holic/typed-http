@@ -2,7 +2,7 @@ import type { ErrorMessage, ErrorType, requiredKeyOf } from "@ark/util";
 import { scope, type inferScope, type validateTypeRoot } from "arktype";
 import { flattenCodecs } from "./codecs.js";
 import type { Codec } from "../types/codec.js";
-import { defineAction as defineBaseAction } from "../types/action.js";
+import { defineAction } from "../types/action.js";
 import {
   createCodec,
   type expectedCodec,
@@ -46,7 +46,7 @@ export type inferDef<
 > = Codec<distillOut<def, encode$>, distillIn<def, encode$>>;
 
 // assumes validated types, input, output
-export type validateExecute<
+export type expectedExecute<
   action,
   types = "types" extends keyof action ? action["types"] : {},
   encode$ = inferScope<flattenCodecs<"encode", types>>,
@@ -69,21 +69,13 @@ export type validateAction<action> =
                 "types" extends keyof action ? action["types"] : {}
               >
             : k extends "execute"
-              ? validateExecute<action>
+              ? expectedExecute<action>
               : ErrorType<
                   "Invalid key.",
                   [expected: "types" | "input" | "output" | "execute"]
                 >;
       }
     : expectedAction;
-
-export type defineAction<action> = defineBaseAction<action>;
-
-export function defineAction<const action>(
-  action: validateAction<action>
-): defineAction<action> {
-  return action as never;
-}
 
 export type createAction<
   action,
@@ -96,7 +88,7 @@ export type createAction<
       output: "output" extends keyof action
         ? inferDef<action["output"], types>
         : never;
-      execute: action["execute"];
+      execute: expectedExecute<action>;
     }>
   : ErrorMessage<"Invalid action. Did you validate it first?">;
 
@@ -125,7 +117,7 @@ export function createAction<const action>(
         })
       : null;
 
-  return defineBaseAction({
+  return defineAction({
     ...(input != null ? { input } : null),
     ...(output != null ? { output } : null),
     execute: action.execute,
