@@ -1,11 +1,5 @@
 import type { ErrorMessage, ErrorType, requiredKeyOf } from "@ark/util";
-import {
-  scope,
-  Type,
-  type inferScope,
-  type inferTypeRoot,
-  type validateTypeRoot,
-} from "arktype";
+import { scope, type inferScope, type validateTypeRoot } from "arktype";
 import { flattenCodecs } from "./codecs.js";
 import type { Codec } from "../types/codec.js";
 import type { Action } from "../types/action.js";
@@ -14,7 +8,7 @@ import {
   type expectedCodec,
   type validateCodec,
 } from "./codec.js";
-import type { distillIn, distillOut, validate } from "./utils.js";
+import type { distillIn, distillOut } from "./utils.js";
 
 export type expectedAction<input = unknown, output = unknown> = {
   types?: { [k: string]: expectedCodec };
@@ -42,14 +36,9 @@ export type validateDef<
   types = {},
   encode$ = inferScope<flattenCodecs<"encode", types>>,
   decode$ = inferScope<flattenCodecs<"decode", types>>,
-> = validate<
-  def,
-  [
-    validateTypeRoot<def, encode$>,
-    validateTypeRoot<def, decode$>,
-    validateBidirectional<def, encode$, decode$>,
-  ]
->;
+> = validateTypeRoot<def, encode$> &
+  validateTypeRoot<def, decode$> &
+  validateBidirectional<def, encode$, decode$>;
 
 // assumes validated def, types
 export type inferDef<
@@ -65,12 +54,10 @@ export type validateExecute<
   encode$ = inferScope<flattenCodecs<"encode", types>>,
 > = (args: {
   input: "input" extends keyof action
-    ? Type<inferTypeRoot<action["input"], encode$>, encode$>["infer"]
+    ? distillIn<action["input"], encode$>
     : never;
 }) => Promise<
-  "output" extends keyof action
-    ? Type<inferTypeRoot<action["output"], encode$>, encode$>["infer"]
-    : void
+  "output" extends keyof action ? distillIn<action["output"], encode$> : void
 >;
 
 export type validateAction<action> =
