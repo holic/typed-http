@@ -74,21 +74,21 @@ test("invalid codec", () => {
     createCodec({})
   )
     .throws("Type definitions must be strings or objects (was undefined)")
-    .type.errors("Codec is missing `decode` type.");
+    .type.errors("Codec is missing `encode` type.");
 
   attest(() =>
     // @ts-expect-error
     createCodec({ encode: "string" })
   )
     .throws("Type definitions must be strings or objects (was undefined)")
-    .type.errors("Codec is missing `encode` type.");
+    .type.errors("Codec is missing `decode` type.");
 
   attest(() =>
     // @ts-expect-error
     createCodec({ decode: "string" })
   )
     .throws("Type definitions must be strings or objects (was undefined)")
-    .type.errors("Codec is missing `decode` type.");
+    .type.errors("Codec is missing `encode` type.");
 
   // TODO: improve type error
   // TODO: add runtime error

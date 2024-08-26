@@ -15,6 +15,7 @@ export function isShape(t: unknown): t is Shape<any> {
   return typeof t === "object" && t !== null && brand in t;
 }
 
+// TODO: validate
 export function defineShape<const shape extends Omit<Shape<any>, brand>>(
   shape: shape
 ): shape & { [brand]: undefined } {

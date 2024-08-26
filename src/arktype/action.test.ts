@@ -9,7 +9,7 @@ import type { Codec } from "../types/codec.js";
 test("action", () => {
   const getUser = createAction({
     input: {
-      id: ["string", "=>", (s: string) => parseInt(s)],
+      id: "integer",
     },
     output: {
       id: "integer",
@@ -25,7 +25,7 @@ test("action", () => {
 
   attest<satisfy<Action<any, any>, typeof getUser>>;
 
-  attest<satisfy<Action<Codec<{ id: string }, any>, any>, typeof getUser>>;
+  attest<satisfy<Action<Codec<{ id: number }, any>, any>, typeof getUser>>;
   attest<satisfy<Action<Codec<any, { id: number }>, any>, typeof getUser>>;
 
   attest<
@@ -43,25 +43,25 @@ test("action", () => {
 
   attest(getUser.input.encode).type.toString.snap(`<const value>(
   value: conform<value, { id: number }>
-) => Error | { id: string }`);
+) => { id: number }`);
 
   attest(getUser.input.decode).type.toString.snap(`<const value>(
-  value: conform<value, { id: string }>
-) => Error | { id: number }`);
+  value: conform<value, { id: number }>
+) => { id: number }`);
 
   attest(getUser.output.encode).type.toString.snap(`<const value>(
   value: conform<value, { id: number; username: string }>
-) => Error | { id: number; username: string }`);
+) => { id: number; username: string }`);
 
   attest(getUser.output.decode).type.toString.snap(`<const value>(
   value: conform<value, { id: number; username: string }>
-) => Error | { id: number; username: string }`);
+) => { id: number; username: string }`);
 });
 
 test("action codecs are bidirectional", () => {
   const getUser = createAction({
     input: {
-      id: ["string", "=>", (s: string) => parseInt(s)],
+      id: "integer",
     },
     output: {
       id: "integer",
@@ -100,6 +100,10 @@ test("action codecs are bidirectional", () => {
   // TODO: test runtime
 });
 
+test.todo("not bidirectional", () => {});
+
+test.todo("invalid keys", () => {});
+
 test("execute return type error", () => {
   attest(() =>
     defineAction({
@@ -128,6 +132,6 @@ test("execute return type error", () => {
       async execute() {},
     })
   ).type.errors.snap(
-    "Type '() => Promise<void>' is not assignable to type 'validateExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<Error | { id: bigint; username: string; }>'.Type 'void' is not assignable to type 'Error | { id: bigint; username: string; }'."
+    "Type '() => Promise<void>' is not assignable to type 'validateExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<{ id: string; username: string; }>'.Type 'void' is not assignable to type '{ id: string; username: string; }'."
   );
 });

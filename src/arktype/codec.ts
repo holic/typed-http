@@ -2,13 +2,12 @@ import type { ErrorMessage, typeToString } from "@ark/util";
 import {
   scope,
   type inferScope,
-  type inferTypeRoot,
-  type Type,
   type validateScope,
   type validateTypeRoot,
 } from "arktype";
 import { defineCodec, type Codec } from "../types/codec.js";
 import { defineShape } from "../types/shape.js";
+import type { distillIn, distillOut } from "./utils.js";
 
 // TODO: check if this works with `unknown`?
 export type expectedCodec = { encode: any; decode: any; scope?: any };
@@ -26,22 +25,19 @@ type validateCodecShape<
         : ErrorMessage<"Codec should only have `encode`, `decode`, and optional `scope` keys.">;
 };
 
-type input<def, $> = Type<inferTypeRoot<def, $>, $>["inferIn"];
-type output<def, $> = Type<inferTypeRoot<def, $>, $>["infer"];
-
 // assumes valid codec
-type validateBidirectional<
+export type validateBidirectional<
   codec,
   $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
 > = "encode" extends keyof codec
   ? "decode" extends keyof codec
-    ? input<codec["encode"], $> extends output<codec["decode"], $>
-      ? input<codec["decode"], $> extends output<codec["encode"], $>
+    ? distillIn<codec["encode"], $> extends distillOut<codec["decode"], $>
+      ? distillIn<codec["decode"], $> extends distillOut<codec["encode"], $>
         ? codec
-        : ErrorMessage<`Codec \`decode\` input type (${typeToString<input<codec["decode"], $>>}) should match \`encode\` output type (${typeToString<output<codec["encode"], $>>}).`>
-      : ErrorMessage<`Codec \`encode\` input type (${typeToString<input<codec["encode"], $>>}) should match \`decode\` output type (${typeToString<output<codec["encode"], $>>}).`>
-    : ErrorMessage<"Codec is missing `encode` type.">
-  : ErrorMessage<"Codec is missing `decode` type.">;
+        : ErrorMessage<`Codec \`decode\` input type (${typeToString<distillIn<codec["decode"], $>>}) should match \`encode\` output type (${typeToString<distillOut<codec["encode"], $>>}).`>
+      : ErrorMessage<`Codec \`encode\` input type (${typeToString<distillIn<codec["encode"], $>>}) should match \`decode\` output type (${typeToString<distillOut<codec["encode"], $>>}).`>
+    : ErrorMessage<"Codec is missing `decode` type.">
+  : ErrorMessage<"Codec is missing `encode` type.">;
 
 export type validateCodec<codec> =
   validateCodecShape<codec> extends codec
@@ -52,7 +48,7 @@ export type createCodec<
   codec,
   $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
 > = codec extends expectedCodec
-  ? Codec<output<codec["encode"], $>, output<codec["decode"], $>>
+  ? Codec<distillOut<codec["encode"], $>, distillOut<codec["decode"], $>>
   : ErrorMessage<"Invalid codec. Did you validate it first?">;
 
 export function createCodec<const codec>(
