@@ -7,7 +7,7 @@ import {
 } from "arktype";
 import { defineCodec, type Codec } from "../types/codec.js";
 import { defineShape } from "../types/shape.js";
-import type { distillIn, distillOut } from "./utils.js";
+import type { distillIn, distillOut, validate } from "./utils.js";
 
 // TODO: check if this works with `unknown`?
 export type expectedCodec = { encode: any; decode: any; scope?: any };
@@ -39,10 +39,10 @@ export type validateBidirectional<
     : ErrorMessage<"Codec is missing `decode` type.">
   : ErrorMessage<"Codec is missing `encode` type.">;
 
-export type validateCodec<codec> =
-  validateCodecShape<codec> extends codec
-    ? validateBidirectional<codec>
-    : validateCodecShape<codec>;
+export type validateCodec<codec> = validate<
+  codec,
+  [validateCodecShape<codec>, validateBidirectional<codec>]
+>;
 
 export type createCodec<
   codec,

@@ -14,7 +14,7 @@ import {
   type expectedCodec,
   type validateCodec,
 } from "./codec.js";
-import type { distillIn, distillOut } from "./utils.js";
+import type { distillIn, distillOut, validate } from "./utils.js";
 
 export type expectedAction<input = unknown, output = unknown> = {
   types?: { [k: string]: expectedCodec };
@@ -42,11 +42,14 @@ export type validateDef<
   types = {},
   encode$ = inferScope<flattenCodecs<"encode", types>>,
   decode$ = inferScope<flattenCodecs<"decode", types>>,
-> =
-  // TODO: refactor this without intersection for better errors
-  validateTypeRoot<def, encode$> &
-    validateTypeRoot<def, decode$> &
-    validateBidirectional<def, encode$, decode$>;
+> = validate<
+  def,
+  [
+    validateTypeRoot<def, encode$>,
+    validateTypeRoot<def, decode$>,
+    validateBidirectional<def, encode$, decode$>,
+  ]
+>;
 
 // assumes validated def, types
 export type inferDef<
