@@ -109,3 +109,5 @@ test("bidirectional", () => {
     "Codec `decode` input type (string) should match `encode` output type (number)."
   );
 });
+
+test.todo("scope", () => {});

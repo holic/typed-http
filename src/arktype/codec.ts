@@ -13,7 +13,7 @@ import { defineShape } from "../types/shape.js";
 // TODO: check if this works with `unknown`?
 export type expectedCodec = { encode: any; decode: any; scope?: any };
 
-export type validateCodec<
+type validateCodecShape<
   codec,
   $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
 > = {
@@ -30,7 +30,7 @@ type input<def, $> = Type<inferTypeRoot<def, $>, $>["inferIn"];
 type output<def, $> = Type<inferTypeRoot<def, $>, $>["infer"];
 
 // assumes valid codec
-export type validateBidirectional<
+type validateBidirectional<
   codec,
   $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
 > = "encode" extends keyof codec
@@ -42,6 +42,11 @@ export type validateBidirectional<
       : ErrorMessage<`Codec \`encode\` input type (${typeToString<input<codec["encode"], $>>}) should match \`decode\` output type (${typeToString<output<codec["encode"], $>>}).`>
     : ErrorMessage<"Codec is missing `encode` type.">
   : ErrorMessage<"Codec is missing `decode` type.">;
+
+export type validateCodec<codec> =
+  validateCodecShape<codec> extends codec
+    ? validateBidirectional<codec>
+    : validateCodecShape<codec>;
 
 export type createCodec<
   codec,

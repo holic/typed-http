@@ -28,8 +28,7 @@ export type flattenCodecs<op, codecs> = {
 } & unknown;
 
 export function flattenCodecs<const op, const codecs>(
-  // TODO: is this unnecesarily complex to enforce no unions? is allowing for a union fine?
-  op: [op] extends ["encode"] | ["decode"] ? op : keyof expectedCodec,
+  op: "encode" | "decode",
   codecs: validateCodecs<codecs>
 ): flattenCodecs<op, codecs> {
   return flatMorph(codecs as never, (k, v) => [
