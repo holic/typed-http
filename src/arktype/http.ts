@@ -1,5 +1,5 @@
 import type { ErrorMessage, ErrorType, Json } from "@ark/util";
-import type { InputParams } from "../inputParams.js";
+import type { InputParams } from "../types/inputParams.js";
 import type { inferScope } from "arktype";
 import type { flattenCodecs } from "./codecs.js";
 import type { distillOut } from "./utils.js";

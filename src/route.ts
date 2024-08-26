@@ -1,7 +1,7 @@
 import { ArkErrors, type } from "arktype";
 import type { inferAction } from "./action.js";
 import { has, type inner } from "./common.js";
-import { toInputParams } from "./inputParams.js";
+import { toInputParams } from "./types/inputParams.js";
 
 // TODO: add support for ArkErrors
 export class RequestHandlerError extends Error {}

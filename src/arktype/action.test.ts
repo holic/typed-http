@@ -1,10 +1,10 @@
 import { test } from "vitest";
 import { type } from "arktype";
-import { createAction, defineAction } from "./action.js";
 import { attest } from "@ark/attest";
-import type { Action } from "../types/action.js";
 import type { satisfy } from "@ark/util";
+import type { Action } from "../types/action.js";
 import type { Codec } from "../types/codec.js";
+import { createAction, defineAction } from "./action.js";
 
 test("action", () => {
   const getUser = createAction({
