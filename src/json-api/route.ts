@@ -7,12 +7,18 @@ import * as respond from "./respond.js";
 
 export const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
 
+// TODO: `createRoute` and add https://github.com/pillarjs/path-to-regexp
+
 export function createRequestHandler({
+  route,
   action,
 }: {
+  route: string;
   action: Action<Codec<InputParams, unknown>, Codec<Json, unknown>>;
 }): (req: Request) => Promise<Response> {
   return async function handler(req: Request) {
+    // TODO: match route
+
     const method = req.method.toUpperCase();
     if (!has(methods, method)) {
       // TODO: return/throw instead so outer handler can manage this?
@@ -32,15 +38,9 @@ export function createRequestHandler({
         case "PUT":
         case "PATCH": {
           if (!req.body) return {};
-
-          // TODO: enforce Content-Type: multipart/form-data or application/x-www-form-urlencoded"
+          // TODO: enforce Content-Type: multipart/form-data or application/x-www-form-urlencoded
           // TODO: support multipart
-          const chunks = req.body.pipeThrough(new TextDecoderStream()).values();
-          let body = "";
-          for await (const chunk of chunks) {
-            body += chunk;
-          }
-
+          const body = await req.text();
           return toInputParams(new URLSearchParams(body));
         }
       }
