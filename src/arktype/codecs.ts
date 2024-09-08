@@ -15,8 +15,5 @@ export function flattenCodecs<const op, const codecs>(
   op: "encode" | "decode",
   codecs: validateCodecs<codecs>
 ): flattenCodecs<op, codecs> {
-  return flatMorph(codecs as never, (k, v) => [
-    `#${k}`,
-    v[op as never],
-  ]) as never;
+  return flatMorph(codecs as never, (k, v) => [`#${k}`, v[op]]) as never;
 }

@@ -1,5 +1,5 @@
 import type { ErrorMessage, ErrorType, requiredKeyOf } from "@ark/util";
-import { scope, type inferScope, type validateTypeRoot } from "arktype";
+import { scope, type inferScope, type type } from "arktype";
 import { flattenCodecs } from "./codecs.js";
 import type { Codec } from "../types/codec.js";
 import { defineAction } from "../types/action.js";
@@ -8,7 +8,6 @@ import {
   type expectedCodec,
   type validateCodec,
 } from "./codec.js";
-import type { distillIn, distillOut } from "./utils.js";
 
 export type expectedAction = {
   types?: { [k: string]: expectedCodec };
@@ -22,9 +21,9 @@ export type validateTypes<types> = {
 };
 
 export type validateBidirectional<def, encode$, decode$> = [
-  distillIn<def, encode$>,
-  distillOut<def, encode$>,
-] extends [distillOut<def, decode$>, distillIn<def, decode$>]
+  type.infer.In<def, encode$>,
+  type.infer.Out<def, encode$>,
+] extends [type.infer.Out<def, decode$>, type.infer.In<def, decode$>]
   ? def
   : ErrorMessage<`Type definition should be bidirectional. Try replacing your morphs with codecs?`>;
 
@@ -34,8 +33,8 @@ export type validateDef<
   types = {},
   encode$ = inferScope<flattenCodecs<"encode", types>>,
   decode$ = inferScope<flattenCodecs<"decode", types>>,
-> = validateTypeRoot<def, encode$> &
-  validateTypeRoot<def, decode$> &
+> = type.validate<def, encode$> &
+  type.validate<def, decode$> &
   validateBidirectional<def, encode$, decode$>;
 
 // assumes validated def, types
@@ -43,7 +42,7 @@ export type inferDef<
   def,
   types = {},
   encode$ = inferScope<flattenCodecs<"encode", types>>,
-> = Codec<distillOut<def, encode$>, distillIn<def, encode$>>;
+> = Codec<type.infer.Out<def, encode$>, type.infer.In<def, encode$>>;
 
 // assumes validated types, input, output
 export type expectedExecute<
@@ -52,10 +51,12 @@ export type expectedExecute<
   encode$ = inferScope<flattenCodecs<"encode", types>>,
 > = (args: {
   input: "input" extends keyof action
-    ? distillIn<action["input"], encode$>
+    ? type.infer.In<action["input"], encode$>
     : never;
 }) => Promise<
-  "output" extends keyof action ? distillIn<action["output"], encode$> : void
+  "output" extends keyof action
+    ? type.infer.In<action["output"], encode$>
+    : void
 >;
 
 export type validateAction<action> =
@@ -104,16 +105,16 @@ export function createAction<const action>(
   const input =
     "input" in action
       ? createCodec({
-          encode: encode$.type(action.input as never),
-          decode: decode$.type(action.input as never),
+          encode: encode$.type(action.input),
+          decode: decode$.type(action.input),
         })
       : null;
 
   const output =
     "output" in action
       ? createCodec({
-          encode: encode$.type(action.output as never),
-          decode: decode$.type(action.output as never),
+          encode: encode$.type(action.output),
+          decode: decode$.type(action.output),
         })
       : null;
 

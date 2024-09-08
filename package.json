@@ -6,13 +6,13 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "arktype": "2.0.0-beta.6",
+    "arktype": "2.0.0-rc.6",
     "path-to-regexp": "^8.0.0"
   },
   "devDependencies": {
-    "@ark/attest": "^0.12.1",
-    "@ark/util": "^0.2.2",
-    "@types/node": "^22.4.1",
+    "@ark/attest": "^0.17.0",
+    "@ark/util": "^0.8.0",
+    "@types/node": "^22.5.4",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

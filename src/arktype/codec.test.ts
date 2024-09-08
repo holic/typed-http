@@ -33,7 +33,7 @@ test("encode validation", () => {
     // @ts-expect-error
     codec.encode("100")
   )
-    .throws.snap("AggregateError: must be a bigint (was string)")
+    .throws.snap("AggregateError: must be a bigint (was a string)")
     .type.errors.snap(
       "Argument of type 'string' is not assignable to parameter of type 'bigint'."
     );
@@ -42,7 +42,7 @@ test("encode validation", () => {
     // @ts-expect-error
     codec.encode(100)
   )
-    .throws.snap("AggregateError: must be a bigint (was number)")
+    .throws.snap("AggregateError: must be a bigint (was a number)")
     .type.errors.snap(
       "Argument of type 'number' is not assignable to parameter of type 'bigint'."
     );
@@ -62,7 +62,7 @@ test("decode validation", () => {
     // @ts-expect-error
     codec.decode(100)
   )
-    .throws.snap("AggregateError: must be a string (was number)")
+    .throws.snap("AggregateError: must be a string (was a number)")
     .type.errors.snap(
       "Argument of type 'number' is not assignable to parameter of type 'string'."
     );
@@ -104,9 +104,9 @@ test("bidirectional", () => {
   // TODO: add runtime error
   attest(() =>
     // @ts-expect-error
-    createCodec({ encode: "parse.number", decode: "string.email" })
+    createCodec({ encode: "string.date.parse", decode: "string.email" })
   ).type.errors(
-    "Codec `decode` input type (string) should match `encode` output type (number)."
+    "Codec `decode` input type (string) should match `encode` output type (Date)."
   );
 });
 

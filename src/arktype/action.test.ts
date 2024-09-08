@@ -9,10 +9,10 @@ import { createAction } from "./action.js";
 test("action", () => {
   const getUser = createAction({
     input: {
-      id: "integer",
+      id: "number.integer",
     },
     output: {
-      id: "integer",
+      id: "number.integer",
       username: "string",
     },
     async execute({ input }) {
@@ -61,10 +61,10 @@ test("action", () => {
 test("action codecs are bidirectional", () => {
   const getUser = createAction({
     input: {
-      id: "integer",
+      id: "number.integer",
     },
     output: {
-      id: "integer",
+      id: "number.integer",
       username: "string",
     },
     async execute({ input }) {
@@ -113,7 +113,9 @@ test("execute return type error", () => {
           decode: type("string")
             .pipe((v) => new Date(v))
             .narrow<Date>((v, ctx) =>
-              isNaN(v.getTime()) ? ctx.mustBe("a valid date time string") : true
+              isNaN(v.getTime())
+                ? ctx.mustBe("a valid date time string")
+                : true,
             ),
         },
         id: {
@@ -130,8 +132,8 @@ test("execute return type error", () => {
       },
       // @ts-expect-error
       async execute() {},
-    })
+    }),
   ).type.errors.snap(
-    "Type '() => Promise<void>' is not assignable to type 'expectedExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<{ id: bigint; username: string; }>'.Type 'void' is not assignable to type '{ id: bigint; username: string; }'."
+    "Type '() => Promise<void>' is not assignable to type 'expectedExecute<{ readonly types: { readonly date: { readonly encode: readonly [\"Date\", \"=>\", (v: Date) => string]; readonly decode: Type<(In: string) => Out<Date>, {}>; }; readonly id: { readonly encode: readonly [\"bigint\", \"=>\", (v: bigint) => string]; readonly decode: readonly [...]; }; }; readonly input: { ...; ...'.Type 'Promise<void>' is not assignable to type 'Promise<{ id: bigint; username: string; }>'.Type 'void' is not assignable to type '{ id: bigint; username: string; }'.",
   );
 });
