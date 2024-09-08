@@ -1,38 +1,40 @@
-import type { Json } from "@ark/util";
-import { has } from "../common.js";
+import { flatMorph, type Json } from "@ark/util";
 import { toInputParams, type InputParams } from "../types/inputParams.js";
 import type { Action } from "../types/action.js";
 import type { Codec } from "../types/codec.js";
 import * as respond from "./respond.js";
+import pathToRegexp from "path-to-regexp";
+import type { Method } from "./common.js";
 
-export const methods = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
-
-// TODO: `createRoute` and add https://github.com/pillarjs/path-to-regexp
-
-export function createRequestHandler({
+export function createRoute({
+  method,
   route,
   action,
 }: {
+  method: Method;
   route: string;
   action: Action<Codec<InputParams, unknown>, Codec<Json, unknown>>;
-}): (req: Request) => Promise<Response> {
+}): (req: Request) => Promise<Response | null> {
+  const matchPath = pathToRegexp.match(route);
   return async function handler(req: Request) {
-    // TODO: match route
+    if (req.method.toUpperCase() !== method) return null;
 
-    const method = req.method.toUpperCase();
-    if (!has(methods, method)) {
-      // TODO: return/throw instead so outer handler can manage this?
-      return respond.error(new Error("Method not implemented."), {
-        status: 501,
-      });
-    }
+    const url = new URL(req.url);
+    // TODO: handle errors from matching path
+    const match = matchPath(url.pathname);
+    if (match === false) return null;
 
     const inputParams = async (): Promise<InputParams> => {
       switch (method) {
         case "GET":
         case "DELETE": {
-          const url = new URL(req.url);
-          return toInputParams(url.searchParams);
+          return {
+            ...toInputParams(url.searchParams),
+            // TODO: warn/error when encountering query params that overlap with URL params?
+            ...flatMorph(match.params, (name, value) =>
+              value === undefined ? [] : [name, value]
+            ),
+          };
         }
         case "POST":
         case "PUT":
