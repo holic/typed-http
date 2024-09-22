@@ -1,5 +1,5 @@
 import type { ErrorMessage, typeToString } from "@ark/util";
-import { scope, type inferScope, type validateScope, type type } from "arktype";
+import { scope, type type } from "arktype";
 import { defineCodec, type Codec } from "../types/codec.js";
 import { defineShape } from "../types/shape.js";
 
@@ -8,10 +8,10 @@ export type expectedCodec = { encode: any; decode: any; scope?: any };
 
 type validateCodecShape<
   codec,
-  $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
+  $ = "scope" extends keyof codec ? scope.infer<codec["scope"]> : {},
 > = {
   [k in keyof codec]: k extends "scope"
-    ? validateScope<codec[k]>
+    ? scope.validate<codec[k]>
     : k extends "encode"
       ? type.validate<codec[k], $>
       : k extends "decode"
@@ -22,7 +22,7 @@ type validateCodecShape<
 // assumes valid codec
 export type validateBidirectional<
   codec,
-  $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
+  $ = "scope" extends keyof codec ? scope.infer<codec["scope"]> : {},
 > = "encode" extends keyof codec
   ? "decode" extends keyof codec
     ? type.infer.In<codec["encode"], $> extends type.infer.Out<
@@ -44,7 +44,7 @@ export type validateCodec<codec> = validateCodecShape<codec> &
 
 export type createCodec<
   codec,
-  $ = "scope" extends keyof codec ? inferScope<codec["scope"]> : {},
+  $ = "scope" extends keyof codec ? scope.infer<codec["scope"]> : {},
 > = codec extends expectedCodec
   ? Codec<
       type.infer.Out<codec["encode"], $>,

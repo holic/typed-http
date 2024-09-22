@@ -12,7 +12,7 @@ test("createCodec", () => {
   attest(isCodec(codec)).snap(true).type.toString.snap("boolean");
 
   attest(codec.encode(100n)).snap("100n").type.toString.snap("string");
-  attest(codec.decode("100n")).snap("100n").type.toString.snap("bigint");
+  attest(codec.decode("100n")).snap(100n).type.toString.snap("bigint");
 
   attest(codec.encoded.accepts(100n)).snap(true).type.toString.snap("boolean");
   attest(codec.encoded.from(100n)).snap("100n").type.toString.snap("string");
@@ -20,7 +20,7 @@ test("createCodec", () => {
   attest(codec.decoded.accepts("100n"))
     .snap(true)
     .type.toString.snap("boolean");
-  attest(codec.decoded.from("100n")).snap("100n").type.toString.snap("bigint");
+  attest(codec.decoded.from("100n")).snap(100n).type.toString.snap("bigint");
 });
 
 test("encode validation", () => {

@@ -1,6 +1,6 @@
 import type { ErrorType, Json } from "@ark/util";
 import type { InputParams } from "../types/inputParams.js";
-import type { inferScope, type } from "arktype";
+import type { scope, type } from "arktype";
 import type { flattenCodecs } from "./codecs.js";
 import { createAction, type validateAction } from "./action.js";
 
@@ -8,7 +8,7 @@ import { createAction, type validateAction } from "./action.js";
 export type validateHttpCompatible<
   action,
   types = "types" extends keyof action ? action["types"] : {},
-  encode$ = inferScope<flattenCodecs<"encode", types>>,
+  encode$ = scope.infer<flattenCodecs<"encode", types>>,
 > = {
   [k in keyof action]: k extends "input"
     ? type.infer.Out<action[k], encode$> extends InputParams

@@ -1,5 +1,5 @@
 import type { ErrorMessage, ErrorType, requiredKeyOf } from "@ark/util";
-import { scope, type inferScope, type type } from "arktype";
+import { scope, type type } from "arktype";
 import { flattenCodecs } from "./codecs.js";
 import type { Codec } from "../types/codec.js";
 import { defineAction } from "../types/action.js";
@@ -31,8 +31,8 @@ export type validateBidirectional<def, encode$, decode$> = [
 export type validateDef<
   def,
   types = {},
-  encode$ = inferScope<flattenCodecs<"encode", types>>,
-  decode$ = inferScope<flattenCodecs<"decode", types>>,
+  encode$ = scope.infer<flattenCodecs<"encode", types>>,
+  decode$ = scope.infer<flattenCodecs<"decode", types>>,
 > = type.validate<def, encode$> &
   type.validate<def, decode$> &
   validateBidirectional<def, encode$, decode$>;
@@ -41,14 +41,14 @@ export type validateDef<
 export type inferDef<
   def,
   types = {},
-  encode$ = inferScope<flattenCodecs<"encode", types>>,
+  encode$ = scope.infer<flattenCodecs<"encode", types>>,
 > = Codec<type.infer.Out<def, encode$>, type.infer.In<def, encode$>>;
 
 // assumes validated types, input, output
 export type expectedExecute<
   action,
   types = "types" extends keyof action ? action["types"] : {},
-  encode$ = inferScope<flattenCodecs<"encode", types>>,
+  encode$ = scope.infer<flattenCodecs<"encode", types>>,
 > = (args: {
   input: "input" extends keyof action
     ? type.infer.In<action["input"], encode$>
