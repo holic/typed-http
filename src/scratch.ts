@@ -2,7 +2,7 @@
 
 router({
   user: {
-    byId: route.get("/users:/id")
+    byId: route.get("/users/:id")
       .in({
         id: "id",
         "createdAt?": "date",
@@ -23,7 +23,7 @@ router({
 });
 
 route
-  .get("/users:/id")
+  .get("/users/:id")
   .in({
     id: "id",
     "createdAt?": "date",
