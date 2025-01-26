@@ -36,8 +36,10 @@ export function defineHttpAction<const action>(
   return action as never;
 }
 
+export type createHttpAction<action> = createAction<action>;
+
 export function createHttpAction<const action>(
   action: validateHttpAction<action>
-): createAction<action> {
+): createHttpAction<action> {
   return createAction(action as never);
 }

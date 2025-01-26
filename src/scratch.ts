@@ -3,22 +3,41 @@
 router({
   user: {
     byId: route.get("/users/:id")
-      .in({
+      .params({
         id: "id",
         "createdAt?": "date",
       })
-      .out({
+      .json({
         id: "id",
         username: "string",
         createdAt: "date",
       })
-      .execute(async ({ input }) => {
+      .serve(async ({ input }) => {
         return {
           id: input.id,
           username: "alice",
           createdAt: new Date(2000, 1),
         };
       }),
+    
+    byId: route.get("/users/:id", action({
+      input: {
+        id: "id",
+        "createdAt?": "date",
+      })
+      output: {
+        id: "id",
+        username: "string",
+        createdAt: "date",
+      }),
+      execute: async ({ input }) => {
+        return {
+          id: input.id,
+          username: "alice",
+          createdAt: new Date(2000, 1),
+        };
+      })
+    })),
   },
 });
 
@@ -84,3 +103,7 @@ createRoute("GET", "/users/:id", createHttpAction({
 }));
 
 */
+
+import { getRoutes, router, routes } from "./router.js";
+
+const routerRoutes = getRoutes(router);
