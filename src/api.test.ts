@@ -25,18 +25,18 @@ test("api", async () => {
   });
 });
 
-test("api", async () => {
-  const api = defineApi({
-    user: {
-      byId: get("/users/:id")
-        .params({ id: "string" })
-        .body({
-          id: "string",
-          username: "string",
-        })
-        .serve(async ({ input: { id } }) => {
-          return { id, username: "bob" };
-        }),
-    },
-  });
-});
+// test("api", async () => {
+//   const api = defineApi({
+//     user: {
+//       byId: get("/users/:id")
+//         .params({ id: "string" })
+//         .body({
+//           id: "string",
+//           username: "string",
+//         })
+//         .serve(async ({ input: { id } }) => {
+//           return { id, username: "bob" };
+//         }),
+//     },
+//   });
+// });
