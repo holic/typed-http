@@ -1,11 +1,11 @@
-import { noSuggest, type conform } from "@ark/util";
+import { type conform } from "@ark/util";
 import type { Shape } from "./shape.js";
 
-const brand = noSuggest("Codec");
+const brand = Symbol("Codec");
 type brand = typeof brand;
 
 export type Codec<encoded, decoded> = {
-  [brand]: undefined;
+  [brand]: true;
   encoded: Shape<encoded>;
   decoded: Shape<decoded>;
   encode<const value>(value: conform<value, decoded>): encoded;
@@ -21,6 +21,6 @@ export function isCodec(t: unknown): t is Codec<any, any> {
 export function defineCodec<const codec>(
   // TODO: validate
   codec: codec
-): codec & { [brand]: undefined } {
-  return { ...codec, [brand]: undefined };
+): codec & { [brand]: true } {
+  return { ...codec, [brand]: true };
 }

@@ -1,10 +1,8 @@
-import { noSuggest } from "@ark/util";
-
-const brand = noSuggest("Shape");
+const brand = Symbol("Shape");
 type brand = typeof brand;
 
 export type Shape<shape> = {
-  readonly [brand]: undefined;
+  readonly [brand]: true;
   readonly accepts: (value: unknown) => value is shape;
   readonly from: (value: unknown) => shape;
 };
@@ -18,6 +16,6 @@ export function isShape(t: unknown): t is Shape<any> {
 // TODO: validate
 export function defineShape<const shape extends Omit<Shape<any>, brand>>(
   shape: shape
-): shape & { [brand]: undefined } {
-  return { ...shape, [brand]: undefined };
+): shape & { [brand]: true } {
+  return { ...shape, [brand]: true };
 }

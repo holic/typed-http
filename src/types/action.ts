@@ -1,7 +1,6 @@
-import { noSuggest } from "@ark/util";
 import type { Codec } from "./codec.js";
 
-const brand = noSuggest("Action");
+const brand = Symbol("Action");
 type brand = typeof brand;
 
 export type Action<
@@ -10,7 +9,7 @@ export type Action<
   executeInput = input extends Codec<any, infer decoded> ? decoded : never,
   executeOutput = output extends Codec<any, infer decoded> ? decoded : void,
 > = {
-  [brand]: undefined;
+  [brand]: true;
   input?: input;
   output?: output;
   execute(args: { input: executeInput }): Promise<executeOutput>;
@@ -23,11 +22,11 @@ export function isAction(t: unknown): t is Action<any, any> {
 }
 
 // assumes validated action
-export type defineAction<action> = action & { [brand]: undefined };
+export type defineAction<action> = action & { [brand]: true };
 
 export function defineAction<const action>(
   // TODO: validate
   action: action
 ): defineAction<action> {
-  return { ...action, [brand]: undefined };
+  return { ...action, [brand]: true };
 }
