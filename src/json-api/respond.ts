@@ -1,4 +1,5 @@
 import type { Json } from "@ark/util";
+import { RouteHandlerError } from "./errors.js";
 
 // TODO: fill in status text?
 
@@ -23,7 +24,10 @@ export function ok(body?: Json | null, res?: ResponseInit): Response {
 export function error(body?: Error | null, res?: ResponseInit): Response {
   // TODO: create specific errors subclasses for different status codes?
   // TODO: expose stack trace in dev?
-  const resInit = { status: 500, ...res };
+  const resInit = {
+    status: body instanceof RouteHandlerError ? body.status : 500,
+    ...res,
+  };
   return body == null ? empty(resInit) : json({ error: body.message }, resInit);
 }
 

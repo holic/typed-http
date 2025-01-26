@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { type } from "arktype";
 import { createHttpAction } from "../arktype/http.js";
-import { createRoute } from "./route.js";
+import { createRouteHandler } from "./route.js";
 import { serializeRequest, serializeResponse } from "../../test/serialize.js";
 
 test("route", async () => {
@@ -38,9 +38,9 @@ test("route", async () => {
     },
   });
 
-  const route = createRoute({
+  const route = createRouteHandler({
     method: "GET",
-    route: "/users/:id",
+    path: "/users/:id",
     action: getUser,
   });
 
@@ -62,10 +62,10 @@ test("route", async () => {
   `);
 });
 
-test("route pass-through", async () => {
-  const route = createRoute({
+test("unmatched route", async () => {
+  const route = createRouteHandler({
     method: "GET",
-    route: "/users/:id",
+    path: "/users/:id",
     action: createHttpAction({
       input: { id: "string" },
       output: { id: "string" },

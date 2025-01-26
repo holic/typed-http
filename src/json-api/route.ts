@@ -1,21 +1,25 @@
-import { flatMorph, type Json } from "@ark/util";
+import { flatMorph } from "@ark/util";
 import { toInputParams, type InputParams } from "../types/inputParams.js";
-import type { Action } from "../types/action.js";
-import type { Codec } from "../types/codec.js";
 import * as respond from "./respond.js";
 import pathToRegexp from "path-to-regexp";
-import type { Method } from "./common.js";
+import {
+  type Method,
+  type RouteAction,
+  type RouteHandler,
+  type RoutePath,
+} from "./common.js";
+import { isArkError, RouteHandlerError } from "./errors.js";
 
-export function createRoute({
+export function createRouteHandler({
   method,
-  route,
+  path,
   action,
 }: {
   method: Method;
-  route: string;
-  action: Action<Codec<InputParams, unknown>, Codec<Json, unknown>>;
-}): (req: Request) => Promise<Response | null> {
-  const matchPath = pathToRegexp.match(route);
+  path: RoutePath;
+  action: RouteAction;
+}): RouteHandler {
+  const matchPath = pathToRegexp.match(path);
   return async function handler(req: Request) {
     if (req.method.toUpperCase() !== method) return null;
 
@@ -48,14 +52,39 @@ export function createRoute({
       }
     };
 
-    const input = action.input
-      ? // TODO: try/catch
-        action.input.decode(await inputParams())
-      : undefined;
-    const output = await action.execute({ input });
-    // TODO: check if we got output but no output codec?
-    const body = action.output ? action.output.encode(output) : undefined;
+    try {
+      const input = await (async () => {
+        if (!action.input) return;
+        const encodedInput = await inputParams();
+        try {
+          return action.input.decode(encodedInput);
+        } catch (error) {
+          if (isArkError(error)) {
+            throw new RouteHandlerError({
+              status: 400,
+              message: "Could not decode request input params.",
+              cause: error,
+            });
+          }
+          throw error;
+        }
+      })();
 
-    return respond.ok(body);
+      const output = await action.execute({ input });
+      // TODO: check if we got output but no output codec?
+      const body = action.output ? action.output.encode(output) : undefined;
+
+      return respond.ok(body);
+    } catch (error) {
+      return respond.error(
+        error instanceof RouteHandlerError
+          ? error
+          : new RouteHandlerError({
+              status: 500,
+              message: "Unexpected error while processing request.",
+              cause: error,
+            })
+      );
+    }
   };
 }
