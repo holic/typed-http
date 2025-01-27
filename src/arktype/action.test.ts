@@ -15,7 +15,7 @@ test("action", () => {
       id: "number.integer",
       username: "string",
     },
-    async execute({ input }) {
+    async execute(input) {
       return {
         id: input.id,
         username: "alice",
@@ -67,7 +67,7 @@ test("action codecs are bidirectional", () => {
       id: "number.integer",
       username: "string",
     },
-    async execute({ input }) {
+    async execute(input) {
       return {
         id: input.id,
         username: "alice",

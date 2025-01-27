@@ -27,7 +27,7 @@ test("action", () => {
       username: "string",
       createdAt: "date",
     },
-    async execute({ input }) {
+    async execute(input) {
       return {
         id: input.id,
         username: "alice",

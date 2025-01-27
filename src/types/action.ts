@@ -12,7 +12,7 @@ export type Action<
   [brand]: true;
   input?: input;
   output?: output;
-  execute(args: { input: executeInput }): Promise<executeOutput>;
+  execute(...args: [input: executeInput]): Promise<executeOutput>;
 };
 
 export type isAction<t> = t extends Action<any, any> ? true : false;

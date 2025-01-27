@@ -3,7 +3,7 @@
   "name": "typed-http",
   "type": "module",
   "scripts": {
-    "test": "vitest run --passWithNoTests"
+    "test": "tsc && vitest run --passWithNoTests"
   },
   "dependencies": {
     "arktype": "2.0.2",
@@ -14,6 +14,7 @@
     "@ark/util": "^0.37.0",
     "@types/node": "^22.5.5",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.4"
+    "vitest": "^3.0.4",
+    "vitest-fetch-mock": "^0.4.3"
   }
 }

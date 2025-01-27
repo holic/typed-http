@@ -13,7 +13,7 @@ export type expectedAction = {
   types?: { [k: string]: expectedCodec };
   input?: any;
   output?: any;
-  execute: (args: { input: any }) => Promise<any>;
+  execute: (input?: any) => Promise<any>;
 };
 
 export type validateTypes<types> = {
@@ -49,11 +49,11 @@ export type expectedExecute<
   action,
   types = "types" extends keyof action ? action["types"] : {},
   encode$ = scope.infer<flattenCodecs<"encode", types>>,
-> = (args: {
-  input: "input" extends keyof action
-    ? type.infer.In<action["input"], encode$>
-    : never;
-}) => Promise<
+> = (
+  ...args: "input" extends keyof action
+    ? [input: type.infer.In<action["input"], encode$>]
+    : []
+) => Promise<
   "output" extends keyof action
     ? type.infer.In<action["output"], encode$>
     : void

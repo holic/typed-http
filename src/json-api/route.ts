@@ -1,90 +1,88 @@
-import { flatMorph } from "@ark/util";
-import { toInputParams, type InputParams } from "../types/inputParams.js";
-import * as respond from "./respond.js";
-import pathToRegexp from "path-to-regexp";
-import {
-  type Method,
-  type RouteAction,
-  type RouteHandler,
-  type RoutePath,
-} from "./common.js";
-import { isArkError, RouteHandlerError } from "./errors.js";
+import { type ErrorMessage, type requiredKeyOf } from "@ark/util";
+import type { Method, RouteAction, RouteHandler, RoutePath } from "./common.js";
+import { createRouteHandler } from "./createRouteHandler.js";
+import { createRouteFetcher } from "./createRouteFetcher.js";
 
-export function createRouteHandler({
-  method,
-  path,
-  action,
-}: {
-  method: Method;
-  path: RoutePath;
-  action: RouteAction;
-}): RouteHandler {
-  const matchPath = pathToRegexp.match(path);
-  return async function handler(req: Request) {
-    if (req.method.toUpperCase() !== method) return null;
+const brand = Symbol("Route");
+type brand = typeof brand;
 
-    const url = new URL(req.url);
-    // TODO: handle errors from matching path
-    const match = matchPath(url.pathname);
-    if (match === false) return null;
+export type expectedRoute = { method: any; path: any; action: any };
 
-    const inputParams = async (): Promise<InputParams> => {
-      switch (method) {
-        case "GET":
-        case "DELETE": {
-          return {
-            ...toInputParams(url.searchParams),
-            // TODO: warn/error when encountering query params that overlap with URL params?
-            ...flatMorph(match.params, (name, value) =>
-              value === undefined ? [] : [name, value]
-            ),
-          };
-        }
-        case "POST":
-        case "PUT":
-        case "PATCH": {
-          if (!req.body) return {};
-          // TODO: enforce Content-Type: multipart/form-data or application/x-www-form-urlencoded
-          // TODO: support multipart
-          const body = await req.text();
-          return toInputParams(new URLSearchParams(body));
-        }
-      }
-    };
+export type Route<
+  method extends Method,
+  path extends RoutePath,
+  action extends RouteAction,
+> = {
+  // Route is branded because it can live in a deeply nested object and
+  // it needs to be easily detected at runtime.
+  // TODO: would it be better to use `class Route` and `instanceof` instead?
+  //       or would it be better to just check if each property is there?
+  readonly [brand]: true;
+  readonly method: method;
+  readonly path: path;
+  readonly action: action;
+  readonly handler: RouteHandler;
+  readonly fetch: createRouteFetcher<action>;
+};
 
-    try {
-      const input = await (async () => {
-        if (!action.input) return;
-        const encodedInput = await inputParams();
-        try {
-          return action.input.decode(encodedInput);
-        } catch (error) {
-          if (isArkError(error)) {
-            throw new RouteHandlerError({
-              status: 400,
-              message: "Could not decode request input params.",
-              cause: error,
-            });
-          }
-          throw error;
-        }
-      })();
-
-      const output = await action.execute({ input });
-      // TODO: check if we got output but no output codec?
-      const body = action.output ? action.output.encode(output) : undefined;
-
-      return respond.ok(body);
-    } catch (error) {
-      return respond.error(
-        error instanceof RouteHandlerError
-          ? error
-          : new RouteHandlerError({
-              status: 500,
-              message: "Unexpected error while processing request.",
-              cause: error,
-            })
-      );
-    }
-  };
+// TODO: validate
+export function defineRoute<
+  const route extends Omit<Route<any, any, any>, brand>,
+>(route: route): route & { [brand]: true } {
+  return { ...route, [brand]: true };
 }
+
+export type isRoute<t> = t extends Route<any, any, any> ? true : false;
+// TODO: should I use never or unknown in place of any in generic?
+export function isRoute(t: unknown): t is Route<any, any, any> {
+  return typeof t === "object" && t !== null && brand in t;
+}
+
+export type validateRoute<route> =
+  requiredKeyOf<expectedRoute> extends keyof route
+    ? {
+        [k in keyof route]: k extends "method"
+          ? route[k] extends Method
+            ? route[k]
+            : Method
+          : k extends "path"
+            ? route[k] extends RoutePath
+              ? route[k]
+              : RoutePath
+            : k extends "action"
+              ? route[k] extends RouteAction
+                ? route[k]
+                : RouteAction
+              : route[k];
+      }
+    : expectedRoute;
+
+export type createRoute<route> = route extends expectedRoute
+  ? Route<route["method"], route["path"], route["action"]>
+  : ErrorMessage<"Invalid route. Did you validate it first?">;
+
+export function createRoute<const route>(
+  _route: validateRoute<route>
+): createRoute<route> {
+  const route = _route as expectedRoute;
+  return defineRoute({
+    ...route,
+    handler: createRouteHandler(route),
+    fetch: createRouteFetcher(route) as never,
+  }) as never;
+}
+
+function bindMethod<const method extends Method>(
+  method: method
+): <const path extends RoutePath, const action extends RouteAction>(
+  path: path,
+  action: action
+) => Route<method, path, action> {
+  return (path, action) => createRoute({ method, path, action });
+}
+
+export const get = bindMethod("GET");
+export const post = bindMethod("POST");
+export const patch = bindMethod("PATCH");
+export const put = bindMethod("PUT");
+export const del = bindMethod("DELETE");

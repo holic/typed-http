@@ -104,6 +104,6 @@ createRoute("GET", "/users/:id", createHttpAction({
 
 */
 
-import { getRoutes, router, routes } from "./router.js";
+// import { getRoutes, router, routes } from "./router.js";
 
-const routerRoutes = getRoutes(router);
+// const routerRoutes = getRoutes(router);
