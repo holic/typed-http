@@ -1,27 +1,63 @@
-import { expect, test, suite } from "vitest";
+import { vi, expect, test, suite, afterEach } from "vitest";
 import { createHttpAction as action } from "../arktype/http.js";
 import { get } from "./route.js";
 import { createApi } from "./api.js";
 import { serializeRequest, serializeResponse } from "../../test/serialize.js";
+import { beforeEach } from "vitest";
 
-const { api, handler } = createApi({
+const records = [{ id: 1, username: "bob" }];
+
+const { api, handler, client } = createApi({
   user: {
+    list: get(
+      "/users",
+      action({
+        output: [{ id: "number", username: "string" }, "[]"],
+        async execute() {
+          return records;
+        },
+      })
+    ),
     byId: get(
       "/users/:id",
       action({
+        types: {
+          id: {
+            encode: ["number.integer", "=>", (v: number) => String(v)],
+            decode: "string.integer.parse",
+          },
+        },
         input: {
-          id: "string.integer",
+          id: "id",
         },
-        output: {
-          id: "number",
-          username: "string",
-        },
+        output: [
+          {
+            id: "number",
+            username: "string",
+          },
+          "|",
+          "null",
+        ],
+        // TODO: should this 404?
         async execute({ id }) {
-          return { id: Number(id), username: "bob" };
+          return records.find((record) => record.id === id) ?? null;
         },
       })
     ),
   },
+});
+
+beforeEach(() => {
+  global.fetch = vi.fn<typeof fetch>((url, opts) => {
+    if (typeof url === "string" && url.startsWith("http://mock/")) {
+      return handler(new Request(url, opts));
+    }
+    throw new Error(`Attempted to fetch an unmocked URL: ${url}`);
+  });
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
 });
 
 suite("handler", () => {
@@ -41,6 +77,19 @@ suite("handler", () => {
       "username": "bob"
     }"
   `);
+  });
+
+  // TODO: improve this response type
+  test("get non-existent user", async () => {
+    const req = new Request(`http://api/users/999`);
+    expect(await serializeRequest(req)).toMatchInlineSnapshot(
+      `"GET http://api/users/999 HTTP/1.1"`
+    );
+
+    const res = await handler(req);
+    expect(await serializeResponse(res)).toMatchInlineSnapshot(
+      `"HTTP/1.1 200"`
+    );
   });
 
   test("invalid params", async () => {
@@ -78,6 +127,39 @@ suite("handler", () => {
   });
 });
 
-// suite("api", () => {
-//   api.user.byId.fetch();
-// });
+suite("client", () => {
+  test("fetch users", async () => {
+    // global.fetch = vi.fn<typeof fetch>((url, opts) => {
+    //   if (typeof url === "string" && url.startsWith("http://mock/")) {
+    //     return handler(new Request(url, opts));
+    //   }
+    //   throw new Error(`Attempted to fetch an unmocked URL: ${url}`);
+    // });
+
+    // fetchMocker.enableMocks();
+    // fetchMocker.mockOnceIf("http://mock/users", api.user.list.handler);
+
+    const output = await client.user.list({ baseUrl: "http://mock" });
+    expect(output).toMatchInlineSnapshot(`
+      [
+        {
+          "id": 1,
+          "username": "bob",
+        },
+      ]
+    `);
+  });
+
+  test("fetch user", async () => {
+    const output = await client.user.byId(
+      { id: 1 },
+      { baseUrl: "http://mock" }
+    );
+    expect(output).toMatchInlineSnapshot(`
+      {
+        "id": 1,
+        "username": "bob",
+      }
+    `);
+  });
+});

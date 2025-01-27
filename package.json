@@ -13,8 +13,8 @@
     "@ark/attest": "^0.41.0",
     "@ark/util": "^0.37.0",
     "@types/node": "^22.5.5",
+    "jsdom": "^26.0.0",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.4",
-    "vitest-fetch-mock": "^0.4.3"
+    "vitest": "^3.0.4"
   }
 }

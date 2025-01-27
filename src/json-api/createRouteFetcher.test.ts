@@ -1,11 +1,8 @@
 import { vi, expect, test } from "vitest";
-import createFetchMock from "vitest-fetch-mock";
 import { createHttpAction } from "../arktype/http.js";
 import { createRouteFetcher } from "./createRouteFetcher.js";
-
-const fetchMocker = createFetchMock(vi);
-fetchMocker.enableMocks();
-fetchMocker.dontMock();
+import { createRouteHandler } from "./createRouteHandler.js";
+import { beforeEach } from "vitest";
 
 const getDate = createHttpAction({
   output: {
@@ -19,22 +16,21 @@ const getDate = createHttpAction({
 });
 
 test("route", async () => {
-  const fetcher = createRouteFetcher(
-    {
-      method: "GET",
-      path: "/date",
-      action: getDate,
-    },
-    { baseUrl: "http://mock" }
-  );
+  const route = { method: "GET", path: "/date", action: getDate } as const;
 
-  fetchMocker.mockOnceIf("http://mock/date", async (req) => {
-    return {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(await getDate.execute()),
-    };
+  global.fetch = vi.fn<typeof fetch>(async (url, opts) => {
+    if (typeof url === "string" && url === "http://mock/date") {
+      const res = await createRouteHandler(route)(new Request(url, opts));
+      if (res === null) throw new Error("Route handler did not match.");
+      return res;
+    }
+    throw new Error(`Attempted to fetch an unmocked URL: ${url}`);
   });
+
+  // fetchMocker.enableMocks();
+  // fetchMocker.mockOnceIf("http://mock/date", createRouteHandler(route));
+
+  const fetcher = createRouteFetcher(route, { baseUrl: "http://mock" });
 
   const output = await fetcher();
 

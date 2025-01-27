@@ -1,5 +1,5 @@
 import { flatMorph } from "@ark/util";
-import type { validateCodec } from "./codec.js";
+import type { expectedCodec, validateCodec } from "./codec.js";
 
 export type validateCodecs<codecs> = {
   [k in keyof codecs]: validateCodec<codecs[k]>;
@@ -15,5 +15,8 @@ export function flattenCodecs<const op, const codecs>(
   op: "encode" | "decode",
   codecs: validateCodecs<codecs>
 ): flattenCodecs<op, codecs> {
-  return flatMorph(codecs as never, (k, v) => [`#${k}`, v[op]]) as never;
+  return flatMorph(
+    codecs as never as { [k: string]: expectedCodec },
+    (k, v) => [`#${k}`, v[op]]
+  ) as never;
 }

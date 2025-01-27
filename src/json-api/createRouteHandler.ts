@@ -23,9 +23,10 @@ export function createRouteHandler({
   return async function handler(req: Request) {
     if (req.method.toUpperCase() !== method) return null;
 
-    const url = new URL(req.url);
+    const url = new URL(req.url, "http://localhost");
     // TODO: handle errors from matching path
     const match = matchPath(url.pathname);
+    // TODO: throw NotFound instead?
     if (match === false) return null;
 
     const inputParams = async (): Promise<InputParams> => {

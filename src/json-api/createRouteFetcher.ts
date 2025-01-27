@@ -6,13 +6,18 @@ export type RouteFetcherOptions = { baseUrl?: string | URL };
 // TODO: in case we get `never` in optional input/output, we can use this helper
 // type get<t, k> = k extends keyof t ? t[k] : undefined;
 
-// TODO: add fetcher options
-export type createRouteFetcher<action extends RouteAction> = action["execute"];
-// (
-//   ...args: "input" extends action["input"]
-//     ? [input: action["input"], options?: RouteFetcherOptions]
-//     : [options?: RouteFetcherOptions]
-// ) => Promise<action["output"] extends undefined ? action["output"] : void>;
+export type createRouteFetcher<action extends RouteAction> = (
+  ...args: [...Parameters<action["execute"]>, options?: RouteFetcherOptions]
+) => Promise<Awaited<ReturnType<action["execute"]>>>;
+
+// action["input"] extends undefined
+//   ? (
+//       options?: RouteFetcherOptions
+//     ) => Promise<"output" extends keyof action ? action["output"] : void>
+//   : (
+//       input: action["input"],
+//       options?: RouteFetcherOptions
+//     ) => Promise<"output" extends keyof action ? action["output"] : void>;
 
 export function createRouteFetcher<const action extends RouteAction>(
   {
@@ -24,14 +29,19 @@ export function createRouteFetcher<const action extends RouteAction>(
     path: RoutePath;
     action: action;
   },
-  defaultOptions?: RouteFetcherOptions
+  defaultOptions: RouteFetcherOptions = {}
 ): createRouteFetcher<action> {
   const toPath = pathToRegexp.compile(path);
   return async function routeFetcher(...args) {
-    const encodedInput = action.input ? action.input.encode(args.shift()) : {};
-    const options = args.shift() as RouteFetcherOptions | undefined;
+    const encodedInput = action.input
+      ? action.input.encode(args.shift() as never)
+      : {};
+    const options = {
+      ...defaultOptions,
+      ...(args.shift() ?? {}),
+    };
 
-    const baseUrl = options?.baseUrl ?? defaultOptions?.baseUrl ?? "";
+    const baseUrl = options.baseUrl ?? "";
     const url = `${baseUrl}${toPath(encodedInput)}`;
     // TODO: append remaining input as query params (for GET/DELETE) or as form body (for POST/PUT/PATCH)
 
@@ -43,15 +53,16 @@ export function createRouteFetcher<const action extends RouteAction>(
     const encodedOutput =
       res.headers.get("Content-Type") === "application/json"
         ? JSON.parse(body)
-        : undefined;
+        : null;
 
     // TODO: cast to error output type from route handler
-    if (encodedOutput && encodedOutput.error) {
+    if (encodedOutput != null && encodedOutput.error) {
       // TODO: better error?
+      // https://github.com/wevm/viem/blob/1b5e775c51144c20172103472d0b82069ce6dece/src/errors/request.ts
       throw new Error(encodedOutput.error);
     }
     // TODO: throw for other non-200 statuses?
 
-    return action.output?.decode(encodedOutput);
+    return action.output?.decode(encodedOutput) as never;
   };
 }
