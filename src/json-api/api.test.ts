@@ -30,17 +30,19 @@ const { api, handler, client } = createApi({
         input: {
           id: "id",
         },
-        output: [
-          {
-            id: "number",
-            username: "string",
-          },
-          "|",
-          "null",
-        ],
+        output: {
+          user: [
+            {
+              id: "number",
+              username: "string",
+            },
+            "|",
+            "null",
+          ],
+        },
         // TODO: should this 404?
         async execute({ id }) {
-          return records.find((record) => record.id === id) ?? null;
+          return { user: records.find((record) => record.id === id) ?? null };
         },
       })
     ),
@@ -69,14 +71,16 @@ suite("handler", () => {
 
     const res = await handler(req);
     expect(await serializeResponse(res)).toMatchInlineSnapshot(`
-    "HTTP/1.1 200 
-    content-type: application/json
+      "HTTP/1.1 200 
+      content-type: application/json
 
-    {
-      "id": 1,
-      "username": "bob"
-    }"
-  `);
+      {
+        "user": {
+          "id": 1,
+          "username": "bob"
+        }
+      }"
+    `);
   });
 
   // TODO: improve this response type
@@ -88,7 +92,14 @@ suite("handler", () => {
 
     const res = await handler(req);
     expect(await serializeResponse(res)).toMatchInlineSnapshot(
-      `"HTTP/1.1 200"`
+      `
+      "HTTP/1.1 200 
+      content-type: application/json
+
+      {
+        "user": null
+      }"
+    `
     );
   });
 
@@ -129,16 +140,6 @@ suite("handler", () => {
 
 suite("client", () => {
   test("fetch users", async () => {
-    // global.fetch = vi.fn<typeof fetch>((url, opts) => {
-    //   if (typeof url === "string" && url.startsWith("http://mock/")) {
-    //     return handler(new Request(url, opts));
-    //   }
-    //   throw new Error(`Attempted to fetch an unmocked URL: ${url}`);
-    // });
-
-    // fetchMocker.enableMocks();
-    // fetchMocker.mockOnceIf("http://mock/users", api.user.list.handler);
-
     const output = await client.user.list({ baseUrl: "http://mock" });
     expect(output).toMatchInlineSnapshot(`
       [
@@ -157,8 +158,10 @@ suite("client", () => {
     );
     expect(output).toMatchInlineSnapshot(`
       {
-        "id": 1,
-        "username": "bob",
+        "user": {
+          "id": 1,
+          "username": "bob",
+        },
       }
     `);
   });

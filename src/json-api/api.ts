@@ -6,7 +6,7 @@ import { createRouteFetcher } from "./createRouteFetcher.js";
 // TODO: add way to specify strongly typed route errors
 
 export type Api = {
-  // TODO: top-level types/scope
+  // TODO: top-level types/scope, request options
   // TODO: are nested definitions more pain than they're worth?
   readonly [k in string]: Route<any, any, any> | Api;
 };

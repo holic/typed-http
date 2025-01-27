@@ -1,4 +1,4 @@
-import type { ErrorType, Json } from "@ark/util";
+import type { ErrorType, JsonStructure } from "@ark/util";
 import type { InputParams } from "../types/inputParams.js";
 import type { scope, type } from "arktype";
 import type { flattenCodecs } from "./codecs.js";
@@ -18,7 +18,7 @@ export type validateHttpCompatible<
           [received: type.infer.Out<action[k], encode$>]
         >
     : k extends "output"
-      ? type.infer.Out<action[k], encode$> extends Json
+      ? type.infer.Out<action[k], encode$> extends JsonStructure
         ? action[k]
         : ErrorType<
             "Action `output` must be able to encode to a JSON object or array.",

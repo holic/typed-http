@@ -2,7 +2,6 @@ import { vi, expect, test } from "vitest";
 import { createHttpAction } from "../arktype/http.js";
 import { createRouteFetcher } from "./createRouteFetcher.js";
 import { createRouteHandler } from "./createRouteHandler.js";
-import { beforeEach } from "vitest";
 
 const getDate = createHttpAction({
   output: {
