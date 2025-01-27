@@ -25,24 +25,19 @@ const { api, handler, client } = createApi()
 
 /*
 
-const listUsers = action({
-  output: [{ id: "number", username: "string" }, "[]"],
-  async execute() {
-    return records;
-  },
-});
+const listUsers = createAction()
+  .output([{ id: "number", username: "string" }, "[]"])
+  .execute(() => records);
 
-const userById = action({
-  types: {
+const userById = createAction()
+  .types({
     id: {
       encode: ["number.integer", "=>", (v: number) => String(v)],
       decode: "string.integer.parse",
     },
-  },
-  input: {
-    id: "id",
-  },
-  output: {
+  })
+  .input({ id: "id" })
+  .output({
     user: [
       {
         id: "number",
@@ -51,12 +46,10 @@ const userById = action({
       "|",
       "null",
     ],
-  },
-  // TODO: should this 404?
-  async execute({ id }) {
-    return { user: records.find((record) => record.id === id) ?? null };
-  },
-});
+  })
+  .execute(({ id }) => ({
+    user: records.find((record) => record.id === id) ?? null,
+  }));
 
 const { api, handler, client } = createApi({
   user: {
